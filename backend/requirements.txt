@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+numpy
+pillow
+opencv-python
+torch
+torchvision
+detectron2
+pydantic
