@@ -1,16 +1,30 @@
 from fastapi import FastAPI, UploadFile, File
 import uvicorn
 import numpy as np
-import cv2
-import torch
 from PIL import Image
 import io
 from detectron2.config import get_cfg
 from detectron2.engine import DefaultPredictor
 from detectron2 import model_zoo
 from detectron2.utils.visualizer import Visualizer, ColorMode
+import boto3
 
 app = FastAPI()
+
+# DigitalOcean Spaces Configuration
+DO_SPACES_KEY = ""
+DO_SPACES_SECRET = ""
+DO_SPACES_REGION = "tor1"  # Example: "nyc3"
+DO_SPACES_BUCKET = "iitresearchsenura"
+DO_SPACES_CDN_URL = "https://iitresearchsenura.tor1.digitaloceanspaces.com"  # Example: https://your-bucket.nyc3.cdn.digitaloceanspaces.com
+
+# Initialize Spaces client
+s3_client = boto3.client(
+    "s3",
+    endpoint_url=f"https://{DO_SPACES_REGION}.digitaloceanspaces.com",
+    aws_access_key_id=DO_SPACES_KEY,
+    aws_secret_access_key=DO_SPACES_SECRET,
+)
 
 # Load Mask R-CNN Model
 cfg = get_cfg()
@@ -29,13 +43,22 @@ async def predict(file: UploadFile = File(...)):
 
     outputs = predictor(image_np)
 
+    # Visualize Predictions
     v = Visualizer(image_np[:, :, ::-1], scale=1, instance_mode=ColorMode.IMAGE_BW)
     out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
     result_image = Image.fromarray(out.get_image()[:, :, ::-1])
 
-    result_path = "result.jpg"
-    result_image.save(result_path)
-    return {"message": "Prediction complete", "result_image": "/result.jpg"}
+    # Save locally
+    local_path = "result.jpg"
+    result_image.save(local_path)
+
+    # Upload to DigitalOcean Spaces
+    s3_client.upload_file(local_path, DO_SPACES_BUCKET, local_path, ExtraArgs={"ACL": "public-read"})
+
+    # Generate public URL
+    result_url = f"{DO_SPACES_CDN_URL}/{local_path}"
+
+    return {"message": "Prediction complete", "result_image_url": result_url}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
