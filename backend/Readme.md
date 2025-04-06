@@ -14,7 +14,7 @@ Steps
 7) pip install torch torchaudio torchvision
 8) pip install git+https://github.com/facebookresearch/detectron2.git
 9) Now go to project/backend and run this -> pip install -r requirements.txt
-10) To Run project ->abcd uvicorn main:app --host 0.0.0.0 --port 8000
+10) To Run project ->uvicorn main:app --host 0.0.0.0 --port 8000
 
 
 

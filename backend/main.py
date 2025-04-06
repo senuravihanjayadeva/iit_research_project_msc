@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile, File
+from uuid import uuid4
 import uvicorn
 import numpy as np
 from PIL import Image
@@ -8,12 +9,13 @@ from detectron2.engine import DefaultPredictor
 from detectron2 import model_zoo
 from detectron2.utils.visualizer import Visualizer, ColorMode
 import boto3
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
 # DigitalOcean Spaces Configuration
-DO_SPACES_KEY = ""
-DO_SPACES_SECRET = ""
+DO_SPACES_KEY = "DO0038DDA4YZGUMMD4XA"
+DO_SPACES_SECRET = "dgLI2k+9/8rbL74CobCxwN2Vr9NGI7jeYSs/DXwdOG4"
 DO_SPACES_REGION = "tor1"  # Example: "nyc3"
 DO_SPACES_BUCKET = "iitresearchsenura"
 DO_SPACES_CDN_URL = "https://iitresearchsenura.tor1.digitaloceanspaces.com"  # Example: https://your-bucket.nyc3.cdn.digitaloceanspaces.com
@@ -34,6 +36,15 @@ cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
 cfg.MODEL.ROI_HEADS.NUM_CLASSES = 3  # Adjust based on your dataset
 predictor = DefaultPredictor(cfg)
 
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # Replace with your frontend URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
+
 @app.post("/predict/")
 async def predict(file: UploadFile = File(...)):
     """Accepts an image file, processes it through Mask R-CNN, and returns the result."""
@@ -49,7 +60,7 @@ async def predict(file: UploadFile = File(...)):
     result_image = Image.fromarray(out.get_image()[:, :, ::-1])
 
     # Save locally
-    local_path = "result.jpg"
+    local_path = f"{uuid4()}.jpg"
     result_image.save(local_path)
 
     # Upload to DigitalOcean Spaces
