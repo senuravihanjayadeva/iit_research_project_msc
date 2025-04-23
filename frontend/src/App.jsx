@@ -64,7 +64,7 @@ const App = () => {
             <ImagePreview image={image} />
           </div>
           {isLoading ? (
-            <div className="flex justify-center mt-3 relative w-full max-w-3xl h-[580px] border border-gray-100 rounded-md">
+            <div className="flex justify-center mt-3 relative w-full max-w-3xl h-[570px] border border-gray-100 rounded-md">
               <div className="self-center">
               <CircleLoader
                 color="white"

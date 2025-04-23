@@ -57,26 +57,31 @@ app.add_middleware(
 
 @app.post("/predict/model1")
 async def predictModel1(file: UploadFile = File(...)):
-    """Accepts an image file, processes it through Mask R-CNN, and returns the result."""
+    """Accepts an image file, processes it through Mask R-CNN, and returns the result without labels."""
     image_bytes = await file.read()
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     image_np = np.array(image)
 
     outputs = predictor(image_np)
+    instances = outputs["instances"].to("cpu")
 
-    # Visualize Predictions
+    # 🔇 Remove labels and scores
+    instances.remove("pred_classes")
+    instances.remove("scores")
+
+    # 🖼️ Visualize only boxes/masks
     v = Visualizer(image_np[:, :, ::-1], scale=1, instance_mode=ColorMode.IMAGE_BW)
-    out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+    out = v.draw_instance_predictions(instances)
     result_image = Image.fromarray(out.get_image()[:, :, ::-1])
 
-    # Save locally
+    # 💾 Save locally
     local_path = f"{uuid4()}.jpg"
     result_image.save(local_path)
 
-    # Upload to DigitalOcean Spaces
+    # ☁️ Upload to DigitalOcean Spaces
     s3_client.upload_file(local_path, DO_SPACES_BUCKET, local_path, ExtraArgs={"ACL": "public-read"})
 
-    # Generate public URL
+    # 🔗 Generate public URL
     result_url = f"{DO_SPACES_CDN_URL}/{local_path}"
 
     return {"message": "Prediction complete", "result_image_url": result_url}
@@ -90,9 +95,10 @@ async def predictModel2(file: UploadFile = File(...)):
 
     outputs = predictor2(image_np)
 
-    # Visualize Predictions
+    # Visualize Predictions with scores
     v = Visualizer(image_np[:, :, ::-1], scale=1, instance_mode=ColorMode.IMAGE_BW)
     out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
+
     result_image = Image.fromarray(out.get_image()[:, :, ::-1])
 
     # Save locally
@@ -129,9 +135,15 @@ async def predictModel2Custom(
         top2_indices = category_instances.scores.argsort(descending=True)[:2]
         category_instances = category_instances[top2_indices]
 
+    # Remove the class labels and confidence scores
+    category_instances.remove("pred_classes")
+    category_instances.remove("scores")
+
     # 🎨 Visualize top 2 predictions
     v = Visualizer(image_np[:, :, ::-1], scale=1, instance_mode=ColorMode.IMAGE_BW)
-    out = v.draw_instance_predictions(category_instances)
+    
+    out = v.draw_instance_predictions(category_instances) 
+
     result_image = Image.fromarray(out.get_image()[:, :, ::-1])
 
     # 💾 Save locally
