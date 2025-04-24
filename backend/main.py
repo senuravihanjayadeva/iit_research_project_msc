@@ -46,6 +46,14 @@ cfg2.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
 cfg2.MODEL.ROI_HEADS.NUM_CLASSES = 6  # Adjust based on your dataset
 predictor2 = DefaultPredictor(cfg2)
 
+# Load Mask R-CNN Model 3
+cfg3 = get_cfg()
+cfg3.merge_from_file(model_zoo.get_config_file("COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x.yaml"))
+cfg3.MODEL.WEIGHTS = "model3_final.pth"  # Path to trained weights
+cfg3.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
+cfg3.MODEL.ROI_HEADS.NUM_CLASSES = 5  # Adjust based on your dataset
+predictor3 = DefaultPredictor(cfg3)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
@@ -161,6 +169,56 @@ async def predictModel2Custom(
         "filtered_category_id": category_id,
         "result_image_url": result_url
     }
+
+@app.post("/predict/model3/custom")
+async def predictModel3Custom(
+    file: UploadFile = File(...),
+    category_id: Optional[int] = Form(1)  # Default to 1 if not provided
+):
+    """Accepts an image and category ID, returns only the top 2 predictions for that category."""
+    image_bytes = await file.read()
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    image_np = np.array(image)
+
+    outputs = predictor3(image_np)
+    instances = outputs["instances"].to("cpu")
+
+    # 🔍 Filter predictions by category
+    mask = instances.pred_classes == category_id
+    category_instances = instances[mask]
+
+    # 📊 Sort by score and keep top 2
+    if len(category_instances) > 2:
+        top2_indices = category_instances.scores.argsort(descending=True)[:2]
+        category_instances = category_instances[top2_indices]
+
+    # Remove the class labels and confidence scores
+    category_instances.remove("pred_classes")
+    category_instances.remove("scores")
+
+    # 🎨 Visualize top 2 predictions
+    v = Visualizer(image_np[:, :, ::-1], scale=1, instance_mode=ColorMode.IMAGE_BW)
+    
+    out = v.draw_instance_predictions(category_instances) 
+
+    result_image = Image.fromarray(out.get_image()[:, :, ::-1])
+
+    # 💾 Save locally
+    local_path = f"{uuid4()}.jpg"
+    result_image.save(local_path)
+
+    # ☁️ Upload to DigitalOcean Spaces
+    s3_client.upload_file(local_path, DO_SPACES_BUCKET, local_path, ExtraArgs={"ACL": "public-read"})
+
+    # 🔗 Generate public URL
+    result_url = f"{DO_SPACES_CDN_URL}/{local_path}"
+
+    return {
+        "message": "Prediction complete (Top 2 shown)",
+        "filtered_category_id": category_id,
+        "result_image_url": result_url
+    }
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
