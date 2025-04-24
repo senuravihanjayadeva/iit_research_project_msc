@@ -5,7 +5,15 @@ export const uploadDentalImage = async (file, selectedModel, selectedCategory) =
   formData.append("file", file);
   selectedCategory && formData.append("category_id", selectedCategory);
   try {
-    const URL = `http://162.243.49.66:8000/${selectedModel === 1 ? 'predict/model1':'predict/model2/custom'}`
+    const DOMAIN = '159.203.39.245';
+    let URL = '';
+    if(selectedModel === 1){
+      URL = `http://${DOMAIN}:8000/predict/model1`
+    }else if(selectedModel === 2){
+      URL = `http://${DOMAIN}:8000/predict/model2/custom`
+    }else if(selectedModel === 3){
+      URL = `http://${DOMAIN}:8000/predict/model3/custom`
+    }
     const response = await axios.post(URL, formData, {
       headers: {
         "Content-Type": "multipart/form-data",

@@ -34,10 +34,9 @@ const App = () => {
       selectedCategory
     );
     response?.result_image_url && setUrl(response?.result_image_url);
-    setTimeout(()=>{
+    setTimeout(() => {
       setIsLoading(false);
-    },1000)
-
+    }, 1000);
   };
 
   const onSelectModal = (selectedModel) => {
@@ -66,15 +65,14 @@ const App = () => {
           {isLoading ? (
             <div className="flex justify-center mt-3 relative w-full max-w-3xl h-[570px] border border-gray-100 rounded-md">
               <div className="self-center">
-              <CircleLoader
-                color="white"
-                loading={true}
-                size={150}
-                aria-label="Loading Spinner"
-                data-testid="loader"
-              />
+                <CircleLoader
+                  color="white"
+                  loading={true}
+                  size={150}
+                  aria-label="Loading Spinner"
+                  data-testid="loader"
+                />
               </div>
-
             </div>
           ) : (
             url && (
@@ -113,6 +111,18 @@ const App = () => {
           }}
         >
           Model 2
+        </button>
+        <button
+          className={`${
+            selectedModel === 3
+              ? `bg-gray-900 text-gray-300`
+              : `bg-gray-300 text-gray-900`
+          } hover:bg-gray-900 hover:text-gray-300 border hover:border-gray-300 font-bold py-2 px-5 rounded-xl cursor-pointer`}
+          onClick={() => {
+            onSelectModal(3);
+          }}
+        >
+          Model 3
         </button>
         <button
           className="bg-gray-300 hover:bg-gray-900 text-gray-900 hover:text-gray-300 border hover:border-gray-300 font-bold py-2 px-5 rounded-xl cursor-pointer"
@@ -188,6 +198,58 @@ const App = () => {
             }}
           >
             infected-teeth
+          </button>
+        </div>
+      )}
+      {selectedModel === 3 && (
+        <div className="flex justify-center pt-5 pb-5 space-x-5">
+          <button
+            className={`${
+              selectedCategory === 1
+                ? `bg-gray-900 text-gray-300`
+                : `bg-gray-300 text-gray-900`
+            } hover:bg-gray-900  hover:text-gray-300 border hover:border-gray-300 font-bold py-2 px-5 rounded-xl cursor-pointer`}
+            onClick={() => {
+              setSelectedCategory(1);
+            }}
+          >
+            Caries
+          </button>
+          <button
+            className={`${
+              selectedCategory === 2
+                ? `bg-gray-900 text-gray-300`
+                : `bg-gray-300 text-gray-900`
+            } hover:bg-gray-900 hover:text-gray-300 border hover:border-gray-300 font-bold py-2 px-5 rounded-xl cursor-pointer`}
+            onClick={() => {
+              setSelectedCategory(2);
+            }}
+          >
+            Cavity
+          </button>
+          <button
+            className={`${
+              selectedCategory === 3
+                ? `bg-gray-900 text-gray-300`
+                : `bg-gray-300 text-gray-900`
+            } hover:bg-gray-900 hover:text-gray-300 border hover:border-gray-300 font-bold py-2 px-5 rounded-xl cursor-pointer`}
+            onClick={() => {
+              setSelectedCategory(3);
+            }}
+          >
+            Crack
+          </button>
+          <button
+            className={`${
+              selectedCategory === 4
+                ? `bg-gray-900 text-gray-300`
+                : `bg-gray-300 text-gray-900`
+            } hover:bg-gray-900 hover:text-gray-300 border hover:border-gray-300 font-bold py-2 px-5 rounded-xl cursor-pointer`}
+            onClick={() => {
+              setSelectedCategory(4);
+            }}
+          >
+            Tooth
           </button>
         </div>
       )}
