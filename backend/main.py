@@ -16,8 +16,8 @@ from detectron2.structures import Instances
 app = FastAPI()
 
 # DigitalOcean Spaces Configuration
-DO_SPACES_KEY = "DO0038DDA4YZGUMMD4XA"
-DO_SPACES_SECRET = "dgLI2k+9/8rbL74CobCxwN2Vr9NGI7jeYSs/DXwdOG4"
+DO_SPACES_KEY = "DO00UXDWZZ8E9G4CU6BM"
+DO_SPACES_SECRET = "zIAE1vRUKw7d2zbZ8on6/G935949XLI/VpTyVmAQmL0"
 DO_SPACES_REGION = "tor1"  # Example: "nyc3"
 DO_SPACES_BUCKET = "iitresearchsenura"
 DO_SPACES_CDN_URL = "https://iitresearchsenura.tor1.digitaloceanspaces.com"  # Example: https://your-bucket.nyc3.cdn.digitaloceanspaces.com
@@ -63,6 +63,18 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+def map_categories_to_diseases(category_ids):
+    disease_map = {
+        0: "Healthy Tooth",  # Example: Replace with your actual categories
+        1: "Cavity",
+        2: "Implant",
+        3: "Infected Teeth",
+        4: "Filling",
+        5: "Impacted Tooth"
+    }
+    diseases = [disease_map.get(int(cat), "Unknown") for cat in category_ids]
+    return diseases
+
 @app.post("/predict/model1")
 async def predictModel1(file: UploadFile = File(...)):
     """Accepts an image file, processes it through Mask R-CNN, and returns the result without labels."""
@@ -103,6 +115,16 @@ async def predictModel2(file: UploadFile = File(...)):
 
     outputs = predictor2(image_np)
 
+
+    # Get category IDs and map them to diseases
+    category_ids = outputs["instances"].pred_classes.to("cpu").numpy()
+    predicted_diseases = map_categories_to_diseases(category_ids)
+    
+    print(f"Predicted diseases: {predicted_diseases}")  # For debugging
+
+    # Send diseases to LLM for treatment recommendations
+    disease_string = ', '.join(predicted_diseases)
+
     # Visualize Predictions with scores
     v = Visualizer(image_np[:, :, ::-1], scale=1, instance_mode=ColorMode.IMAGE_BW)
     out = v.draw_instance_predictions(outputs["instances"].to("cpu"))
@@ -119,7 +141,7 @@ async def predictModel2(file: UploadFile = File(...)):
     # Generate public URL
     result_url = f"{DO_SPACES_CDN_URL}/{local_path}"
 
-    return {"message": "Prediction complete", "result_image_url": result_url}
+    return {"message": "Prediction complete", "result_image_url": result_url, "diseases": disease_string}
 
 @app.post("/predict/model2/custom")
 async def predictModel2Custom(

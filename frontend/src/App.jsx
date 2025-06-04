@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { uploadDentalImage } from "../apis";
+import { getTreatmentPlan, uploadDentalImage } from "../apis";
 import "./App.css";
 import FileUploader from "./components/FileUploader";
 import ImagePreview from "./components/ImagePreview";
 import { FaTooth } from "react-icons/fa";
 import { CircleLoader } from "react-spinners";
+import TreatmentSuggestion from "./components/TreatmentSuggestion";
 
 const App = () => {
   const [image, setImage] = useState(null);
@@ -13,6 +14,7 @@ const App = () => {
   const [selectedModel, setSelectedModel] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [recommendation, setRecommendation] = useState(null);
 
   const handleFile = (file) => {
     setFile(file);
@@ -24,6 +26,7 @@ const App = () => {
     setUrl(null);
     setSelectedModel(1);
     setSelectedCategory(null);
+    setRecommendation(null);
   };
 
   const onClickProcess = async () => {
@@ -37,6 +40,8 @@ const App = () => {
     setTimeout(() => {
       setIsLoading(false);
     }, 1000);
+    const treatmentResponse = await getTreatmentPlan();
+    setRecommendation(treatmentResponse.recommendation);
   };
 
   const onSelectModal = (selectedModel) => {
@@ -252,6 +257,9 @@ const App = () => {
             Tooth
           </button>
         </div>
+      )}
+      {recommendation && (
+        <TreatmentSuggestion recommendation={recommendation} />
       )}
     </div>
   );
