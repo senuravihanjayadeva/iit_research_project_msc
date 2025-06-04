@@ -84,7 +84,11 @@ async def predictModel1(file: UploadFile = File(...)):
 
     outputs = predictor(image_np)
     instances = outputs["instances"].to("cpu")
-
+    category_ids = outputs["instances"].pred_classes.to("cpu").numpy()
+    predicted_diseases = map_categories_to_diseases(category_ids)
+    print(f"Predicted diseases: {predicted_diseases}")  # For debugging
+    # Send diseases to LLM for treatment recommendations
+    disease_string = ', '.join(predicted_diseases)
     # 🔇 Remove labels and scores
     instances.remove("pred_classes")
     instances.remove("scores")
@@ -104,7 +108,7 @@ async def predictModel1(file: UploadFile = File(...)):
     # 🔗 Generate public URL
     result_url = f"{DO_SPACES_CDN_URL}/{local_path}"
 
-    return {"message": "Prediction complete", "result_image_url": result_url}
+    return {"message": "Prediction complete", "result_image_url": result_url, "diseases": disease_string}
 
 @app.post("/predict/model2")
 async def predictModel2(file: UploadFile = File(...)):
@@ -155,7 +159,11 @@ async def predictModel2Custom(
 
     outputs = predictor2(image_np)
     instances = outputs["instances"].to("cpu")
-
+    category_ids = outputs["instances"].pred_classes.to("cpu").numpy()
+    predicted_diseases = map_categories_to_diseases(category_ids)
+    print(f"Predicted diseases: {predicted_diseases}")  # For debugging
+    # Send diseases to LLM for treatment recommendations
+    disease_string = ', '.join(predicted_diseases)
     # 🔍 Filter predictions by category
     mask = instances.pred_classes == category_id
     category_instances = instances[mask]
@@ -189,7 +197,8 @@ async def predictModel2Custom(
     return {
         "message": "Prediction complete (Top 2 shown)",
         "filtered_category_id": category_id,
-        "result_image_url": result_url
+        "result_image_url": result_url,
+        "diseases": disease_string
     }
 
 @app.post("/predict/model3/custom")
@@ -204,7 +213,11 @@ async def predictModel3Custom(
 
     outputs = predictor3(image_np)
     instances = outputs["instances"].to("cpu")
-
+    category_ids = outputs["instances"].pred_classes.to("cpu").numpy()
+    predicted_diseases = map_categories_to_diseases(category_ids)
+    print(f"Predicted diseases: {predicted_diseases}")  # For debugging
+    # Send diseases to LLM for treatment recommendations
+    disease_string = ', '.join(predicted_diseases)
     # 🔍 Filter predictions by category
     mask = instances.pred_classes == category_id
     category_instances = instances[mask]
@@ -238,7 +251,8 @@ async def predictModel3Custom(
     return {
         "message": "Prediction complete (Top 2 shown)",
         "filtered_category_id": category_id,
-        "result_image_url": result_url
+        "result_image_url": result_url,
+        "diseases": disease_string
     }
 
 

@@ -9,9 +9,12 @@ export const uploadDentalImage = async (
   formData.append("file", file);
   selectedCategory && formData.append("category_id", selectedCategory);
   try {
-    const DOMAIN = "178.128.235.77";
+    const DOMAIN = "134.122.39.22";
     let URL = "";
-    if (selectedModel === 1) {
+    if (
+      selectedModel === 1 ||
+      (selectedModel === 2 && selectedCategory === 1)
+    ) {
       URL = `http://${DOMAIN}:8000/predict/model1`;
     } else if (selectedModel === 2) {
       URL = `http://${DOMAIN}:8000/predict/model2/custom`;
@@ -31,9 +34,9 @@ export const uploadDentalImage = async (
   }
 };
 
-export const getTreatmentPlan = async (category_id) => {
+export const getTreatmentPlan = async (summary) => {
   const symptomsObject = {
-    symptoms: "cavity",
+    symptoms: summary,
   };
   const configs = {
     headers: {

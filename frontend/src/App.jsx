@@ -7,6 +7,26 @@ import { FaTooth } from "react-icons/fa";
 import { CircleLoader } from "react-spinners";
 import TreatmentSuggestion from "./components/TreatmentSuggestion";
 
+function summarizeDiseases(diseaseString) {
+  if (!diseaseString) return "";
+
+  const diseaseArray = diseaseString
+    .split(",")
+    .map((d) => d.trim())
+    .filter(Boolean);
+
+  const counts = {};
+  diseaseArray.forEach((disease) => {
+    counts[disease] = (counts[disease] || 0) + 1;
+  });
+
+  const summary = Object.entries(counts)
+    .map(([disease, count]) => `${count} ${disease}`)
+    .join(", ");
+
+  return summary;
+}
+
 const App = () => {
   const [image, setImage] = useState(null);
   const [file, setFile] = useState(null);
@@ -31,6 +51,8 @@ const App = () => {
 
   const onClickProcess = async () => {
     setIsLoading(true);
+    setRecommendation(null);
+
     const response = await uploadDentalImage(
       file,
       selectedModel,
@@ -40,8 +62,15 @@ const App = () => {
     setTimeout(() => {
       setIsLoading(false);
     }, 1000);
-    const treatmentResponse = await getTreatmentPlan();
-    setRecommendation(treatmentResponse.recommendation);
+    console.log({ response: response.diseases });
+    
+    if(response.diseases){
+      const summary = summarizeDiseases(response.diseases);
+      console.log({summary});
+      const treatmentResponse = await getTreatmentPlan(summary);
+      setRecommendation(treatmentResponse.recommendation);
+    }
+
   };
 
   const onSelectModal = (selectedModel) => {
@@ -168,7 +197,7 @@ const App = () => {
           >
             Fillings
           </button>
-          <button
+          {/* <button
             className={`${
               selectedCategory === 3
                 ? `bg-gray-900 text-gray-300`
@@ -179,8 +208,8 @@ const App = () => {
             }}
           >
             Impacted Tooth
-          </button>
-          <button
+          </button> */}
+          {/* <button
             className={`${
               selectedCategory === 4
                 ? `bg-gray-900 text-gray-300`
@@ -191,7 +220,7 @@ const App = () => {
             }}
           >
             Implant
-          </button>
+          </button> */}
           <button
             className={`${
               selectedCategory === 5
