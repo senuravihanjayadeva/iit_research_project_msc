@@ -16,8 +16,8 @@ from detectron2.structures import Instances
 app = FastAPI()
 
 # DigitalOcean Spaces Configuration
-DO_SPACES_KEY = "DO00UXDWZZ8E9G4CU6BM"
-DO_SPACES_SECRET = "zIAE1vRUKw7d2zbZ8on6/G935949XLI/VpTyVmAQmL0"
+DO_SPACES_KEY = ""
+DO_SPACES_SECRET = ""
 DO_SPACES_REGION = "tor1"  # Example: "nyc3"
 DO_SPACES_BUCKET = "iitresearchsenura"
 DO_SPACES_CDN_URL = "https://iitresearchsenura.tor1.digitaloceanspaces.com"  # Example: https://your-bucket.nyc3.cdn.digitaloceanspaces.com
