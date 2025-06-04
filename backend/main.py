@@ -63,16 +63,35 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
-def map_categories_to_diseases(category_ids):
+def map_categories_to_diseases(category_ids, selected_category_id):
     disease_map = {
-        0: "Healthy Tooth",  # Example: Replace with your actual categories
+        0: "Healthy Tooth",
         1: "Cavity",
-        2: "Implant",
-        3: "Infected Teeth",
-        4: "Filling",
-        5: "Impacted Tooth"
+        2: "Fillings",
+        3: "Impacted Tooth",
+        4: "Implant",
+        5: "Infected-teeth"
     }
-    diseases = [disease_map.get(int(cat), "Unknown") for cat in category_ids]
+
+    # Filter only category_ids that match the selected one
+    filtered_ids = [int(cat) for cat in category_ids if int(cat) == selected_category_id]
+
+    # Map to disease names
+    diseases = [disease_map.get(cat, "Unknown") for cat in filtered_ids]
+    return diseases
+
+def map_categories_to_diseases_normal(category_ids, selected_category_id):
+    disease_map = {
+        0: "Healthy Tooth",
+        1: "Caries",
+        2: "Cavity",
+    }
+
+    # Filter only category_ids that match the selected one
+    filtered_ids = [int(cat) for cat in category_ids if int(cat) == selected_category_id]
+
+    # Map to disease names
+    diseases = [disease_map.get(cat, "Unknown") for cat in filtered_ids]
     return diseases
 
 @app.post("/predict/model1")
@@ -85,7 +104,7 @@ async def predictModel1(file: UploadFile = File(...)):
     outputs = predictor(image_np)
     instances = outputs["instances"].to("cpu")
     category_ids = outputs["instances"].pred_classes.to("cpu").numpy()
-    predicted_diseases = map_categories_to_diseases(category_ids)
+    predicted_diseases = map_categories_to_diseases(category_ids, 1)
     print(f"Predicted diseases: {predicted_diseases}")  # For debugging
     # Send diseases to LLM for treatment recommendations
     disease_string = ', '.join(predicted_diseases)
@@ -122,7 +141,7 @@ async def predictModel2(file: UploadFile = File(...)):
 
     # Get category IDs and map them to diseases
     category_ids = outputs["instances"].pred_classes.to("cpu").numpy()
-    predicted_diseases = map_categories_to_diseases(category_ids)
+    predicted_diseases = map_categories_to_diseases(category_ids,1)
     
     print(f"Predicted diseases: {predicted_diseases}")  # For debugging
 
@@ -160,7 +179,7 @@ async def predictModel2Custom(
     outputs = predictor2(image_np)
     instances = outputs["instances"].to("cpu")
     category_ids = outputs["instances"].pred_classes.to("cpu").numpy()
-    predicted_diseases = map_categories_to_diseases(category_ids)
+    predicted_diseases = map_categories_to_diseases(category_ids, category_id)
     print(f"Predicted diseases: {predicted_diseases}")  # For debugging
     # Send diseases to LLM for treatment recommendations
     disease_string = ', '.join(predicted_diseases)
@@ -169,7 +188,7 @@ async def predictModel2Custom(
     category_instances = instances[mask]
 
     # 📊 Sort by score and keep top 2
-    if len(category_instances) > 2:
+    if len(category_instances) > 3:
         top2_indices = category_instances.scores.argsort(descending=True)[:2]
         category_instances = category_instances[top2_indices]
 
@@ -214,7 +233,7 @@ async def predictModel3Custom(
     outputs = predictor3(image_np)
     instances = outputs["instances"].to("cpu")
     category_ids = outputs["instances"].pred_classes.to("cpu").numpy()
-    predicted_diseases = map_categories_to_diseases(category_ids)
+    predicted_diseases = map_categories_to_diseases_normal(category_ids, category_id)
     print(f"Predicted diseases: {predicted_diseases}")  # For debugging
     # Send diseases to LLM for treatment recommendations
     disease_string = ', '.join(predicted_diseases)

@@ -122,7 +122,7 @@ const App = () => {
       )}
 
       <div className="flex justify-center pt-5 pb-5 space-x-5">
-        <button
+        {/* <button
           className={`${
             selectedModel === 1
               ? `bg-gray-900 text-gray-300`
@@ -133,7 +133,7 @@ const App = () => {
           }}
         >
           Model 1
-        </button>
+        </button> */}
         <button
           className={`${
             selectedModel === 2
@@ -144,7 +144,7 @@ const App = () => {
             onSelectModal(2);
           }}
         >
-          Model 2
+          IOPA
         </button>
         <button
           className={`${
@@ -156,7 +156,7 @@ const App = () => {
             onSelectModal(3);
           }}
         >
-          Model 3
+          Normal
         </button>
         <button
           className="bg-gray-300 hover:bg-gray-900 text-gray-900 hover:text-gray-300 border hover:border-gray-300 font-bold py-2 px-5 rounded-xl cursor-pointer"
@@ -273,7 +273,7 @@ const App = () => {
           >
             Crack
           </button>
-          <button
+          {/* <button
             className={`${
               selectedCategory === 4
                 ? `bg-gray-900 text-gray-300`
@@ -284,7 +284,7 @@ const App = () => {
             }}
           >
             Tooth
-          </button>
+          </button> */}
         </div>
       )}
       {recommendation && (
