@@ -16,6 +16,8 @@ export const uploadDentalImage = async (
       (selectedModel === 2 && selectedCategory === 1)
     ) {
       URL = `http://${DOMAIN}:8000/predict/model1`;
+    } else if (selectedModel === 2 && selectedCategory === null) {
+      URL = `http://${DOMAIN}:8000/predict/model2`;
     } else if (selectedModel === 2) {
       URL = `http://${DOMAIN}:8000/predict/model2/custom`;
     } else if (selectedModel === 3) {

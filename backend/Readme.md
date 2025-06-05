@@ -17,5 +17,5 @@ Steps
 10) Now run -> python3 download_from_space.py
 10) To Run project -> uvicorn main:app --host 0.0.0.0 --port 8000
 
-
+lsof -i:8000
 
